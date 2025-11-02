@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sketch with Sidebar</title>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <script src="libraries/p5.min.js"></script>
+    <script src="libraries/p5.sound.min.js"></script>
+  </head>
+
+  <body>
+    <!-- 左側透明觸發區塊：放在最前面以接收滑鼠/觸控事件（位於 canvas 之上） -->
+    <div id="left-trigger" aria-hidden="true"></div>
+
+    <!-- 側邊選單 -->
+    <div id="sidebar" aria-hidden="false">
+      <ul>
+        <li><a href="#" id="unit1Link">第一單元作品</a></li>
+        <li><a href="#" id="unit1Doc">第一單元講義</a></li>
+        <li><a href="#">測驗系統</a></li>
+        <li><a href="#">回到首頁</a></li>
+      </ul>
+    </div>
+
+    <!-- iframe 容器 -->
+    <div id="iframeContainer" class="hidden">
+      <iframe id="contentFrame" src="about:blank" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <button id="closeFrame" aria-label="關閉">×</button>
+    </div>
+
+    <script src="sketch.js"></script>
+
+    <script>
+      // 側邊選單顯示邏輯：使用左側透明觸發區塊 + 側邊選單的 mouseleave
+      const sidebar = document.getElementById('sidebar');
+      const trigger = document.getElementById('left-trigger');
+      const iframeContainer = document.getElementById('iframeContainer');
+      const contentFrame = document.getElementById('contentFrame');
+      const closeFrame = document.getElementById('closeFrame');
+      const unit1Link = document.getElementById('unit1Link');
+      const unit1Doc = document.getElementById('unit1Doc');
+
+      // 開啟選單：滑鼠移入或觸控時
+      function openSidebar() {
+        sidebar.classList.add('active');
+      }
+
+      // 關閉選單：滑鼠移出選單時
+      function closeSidebar() {
+        sidebar.classList.remove('active');
+      }
+
+      // iframe 控制
+      unit1Link.addEventListener('click', (e) => {
+        e.preventDefault();
+        contentFrame.src = 'https://yiwei1414.github.io/20251020/';
+        iframeContainer.classList.remove('hidden');
+      });
+
+      unit1Doc.addEventListener('click', (e) => {
+        e.preventDefault();
+        contentFrame.src = 'https://hackmd.io/@EReet8PsSVWg1puXb9tTUg/HyoewQCogg';
+        iframeContainer.classList.remove('hidden');
+      });
+
+      closeFrame.addEventListener('click', () => {
+        iframeContainer.classList.add('hidden');
+        contentFrame.src = 'about:blank';
+      });
+
+      trigger.addEventListener('mouseenter', openSidebar);
+      trigger.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        openSidebar();
+      }, { passive: true });
+
+      // 當滑鼠從 sidebar 移出，關閉選單
+      sidebar.addEventListener('mouseleave', closeSidebar);
+
+      // 若要在點擊畫面其他地方關閉，可以如下處理
+      document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && e.target !== trigger) {
+          closeSidebar();
+        }
+      });
+    </script>
+  </body>
+</html>
