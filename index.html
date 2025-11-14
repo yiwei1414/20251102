@@ -21,8 +21,10 @@
       <ul>
         <li><a href="#" id="unit1Link">第一單元作品</a></li>
         <li><a href="#" id="unit1Doc">第一單元講義</a></li>
-        <li><a href="#">測驗系統</a></li>
-        <li><a href="#">回到首頁</a></li>
+        <li><a href="#" id="testSystemLink">測驗系統</a></li>
+        <li><a href="#" id="testNotesLink">測驗卷筆記</a></li>
+        <li><a href="#" id="projectNotesLink">作品筆記</a></li>
+        <li><a href="https://yiwei1414.github.io/20251102/">回到首頁</a></li>
       </ul>
     </div>
 
@@ -43,6 +45,9 @@
       const closeFrame = document.getElementById('closeFrame');
       const unit1Link = document.getElementById('unit1Link');
       const unit1Doc = document.getElementById('unit1Doc');
+      const testSystemLink = document.getElementById('testSystemLink');
+      const testNotesLink = document.getElementById('testNotesLink');
+      const projectNotesLink = document.getElementById('projectNotesLink');
 
       // 開啟選單：滑鼠移入或觸控時
       function openSidebar() {
@@ -64,6 +69,24 @@
       unit1Doc.addEventListener('click', (e) => {
         e.preventDefault();
         contentFrame.src = 'https://hackmd.io/@EReet8PsSVWg1puXb9tTUg/HyoewQCogg';
+        iframeContainer.classList.remove('hidden');
+      });
+
+      testSystemLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        contentFrame.src = 'https://yiwei1414.github.io/20251115/';
+        iframeContainer.classList.remove('hidden');
+      });
+
+      testNotesLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        contentFrame.src = 'https://hackmd.io/@EReet8PsSVWg1puXb9tTUg/BymNoHAk-g';
+        iframeContainer.classList.remove('hidden');
+      });
+
+      projectNotesLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        contentFrame.src = 'https://hackmd.io/@EReet8PsSVWg1puXb9tTUg/BymNoHAk-g';
         iframeContainer.classList.remove('hidden');
       });
 
