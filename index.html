@@ -24,6 +24,12 @@
         <li><a href="#" id="testSystemLink">測驗系統</a></li>
         <li><a href="#" id="testNotesLink">測驗卷筆記</a></li>
         <li><a href="#" id="projectNotesLink">作品筆記</a></li>
+        <li class="has-submenu">
+          <a href="https://www.tku.edu.tw" target="_blank" rel="noopener noreferrer">淡江大學</a>
+          <ul class="submenu">
+            <li><a href="#" id="etTkuLink">教育科技學系</a></li>
+          </ul>
+        </li>
         <li><a href="https://yiwei1414.github.io/20251102/">回到首頁</a></li>
       </ul>
     </div>
@@ -48,6 +54,7 @@
       const testSystemLink = document.getElementById('testSystemLink');
       const testNotesLink = document.getElementById('testNotesLink');
       const projectNotesLink = document.getElementById('projectNotesLink');
+      const etTkuLink = document.getElementById('etTkuLink');
 
       // 開啟選單：滑鼠移入或觸控時
       function openSidebar() {
@@ -87,6 +94,12 @@
       projectNotesLink.addEventListener('click', (e) => {
         e.preventDefault();
         contentFrame.src = 'https://hackmd.io/@EReet8PsSVWg1puXb9tTUg/BymNoHAk-g';
+        iframeContainer.classList.remove('hidden');
+      });
+
+      etTkuLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        contentFrame.src = 'http://www.et.tku.edu.tw';
         iframeContainer.classList.remove('hidden');
       });
 
