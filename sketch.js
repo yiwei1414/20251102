@@ -1,7 +1,6 @@
 let minSide;
 let objs = [];
 let colors = ['#ed3441', '#ffd630', '#329fe3', '#08AC7E', '#DED9DF', '#FE4D03'];
-let waveOffset = 0; // 用於文字波動效果
 
 function setup() {
 	// 使用視窗大小建立畫布（移除重複的 createCanvas 調用）
@@ -23,24 +22,42 @@ function windowResized() {
     minSide = min(width, height);
 }
 
+// Easing function: easeOutBounce
+function easeOutBounce(x) {
+    const n1 = 7.5625;
+    const d1 = 2.75;
+
+    if (x < 1 / d1) {
+        return n1 * x * x;
+    } else if (x < 2 / d1) {
+        return n1 * (x -= 1.5 / d1) * x + 0.75;
+    } else if (x < 2.5 / d1) {
+        return n1 * (x -= 2.25 / d1) * x + 0.9375;
+    } else {
+        return n1 * (x -= 2.625 / d1) * x + 0.984375;
+    }
+}
+
 // 繪製波動文字
 function drawWavyText() {
-    textAlign(CENTER);
-    textSize(35);
+    textAlign(CENTER, CENTER); // 水平與垂直置中
+    textSize(50); // 將字體放大以更突出
     fill(255); // 白色文字
     
-    // 計算波動效果
-    waveOffset += 0.05; // 控制波動速度
-    let wave1 = sin(waveOffset) * 15; // 第一行文字的波動
-    let wave2 = sin(waveOffset + PI/2) * 15; // 第二行文字的波動（錯開相位）
+    // 計算 bounce 效果
+    const animationDuration = 120; // 動畫總時長（幀）
+    const bounceHeight = 50; // 跳動的最大高度
+    let progress = (frameCount % animationDuration) / animationDuration; // 計算當前進度 (0 to 1)
+    let bounce = easeOutBounce(progress); // 應用 easing function
+    let yOffset = (1 - bounce) * bounceHeight; // 將 bounce 效果轉換為 Y 軸位移
     
     // 設定字體
     textFont('Arial');
     
-    // 繪製兩行文字，位置在畫面中間
-    text('淡江教育科技學系', width/2, height/2 - 20 + wave1);
-    text('411136541江奕葳', width/2, height/2 + 35 + wave2);
-}function draw() {
+    // 繪製文字，位置在畫面正中間
+    text('淡江大學', width/2, height/2 - yOffset);
+}
+function draw() {
 	background(0);
 	for (let i of objs) {
 		i.run();
@@ -48,6 +65,15 @@ function drawWavyText() {
 	
 	// 繪製波動文字
 	drawWavyText();
+
+	// 在右下角繪製學號姓名
+	push(); // 保存當前的繪圖設定
+	textAlign(RIGHT, BOTTOM);
+	textSize(16);
+	fill(255, 150); // 使用白色半透明，讓文字不那麼刺眼
+	let padding = 20; // 文字與邊緣的距離
+	text('學號411136541江奕葳', width - padding, height - padding);
+	pop(); // 恢復之前的繪圖設定
 
 	// 反向迭代以安全地從陣列中移除元素，避免跳過下一個元素
 	for (let i = objs.length - 1; i >= 0; i--) {
