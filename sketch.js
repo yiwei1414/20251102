@@ -1,284 +1,142 @@
-let minSide;
-let objs = [];
-let colors = ['#ed3441', '#ffd630', '#329fe3', '#08AC7E', '#DED9DF', '#FE4D03'];
-let waveOffset = 0; // 用於文字波動效果
-
-function setup() {
-	// 使用視窗大小建立畫布（移除重複的 createCanvas 調用）
-	let cnv = createCanvas(windowWidth, windowHeight);
-	// 確保 canvas 視覺上覆蓋整個視窗並固定位置（CSS 也處理，但在 JS 也設定以防止某些平台差異）
-	cnv.style('display', 'block');
-	cnv.style('position', 'fixed');
-	cnv.style('top', '0px');
-	cnv.style('left', '0px');
-	cnv.style('z-index', '0');
-	pixelDensity(1);
-	minSide = min(width, height);
-	rectMode(CENTER);
+/* 基本頁面樣式 */
+html, body {
+    height: 100%;
 }
 
-function windowResized() {
-    // 畫面大小改變時調整 canvas 大小，並更新 minSide
-    resizeCanvas(windowWidth, windowHeight);
-    minSide = min(width, height);
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #f4f4f4;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
-// 繪製波動文字
-function drawWavyText() {
-    textAlign(CENTER);
-    textSize(35);
-    fill(255); // 白色文字
-    
-    // 計算波動效果
-    waveOffset += 0.05; // 控制波動速度
-    let wave1 = sin(waveOffset) * 15; // 第一行文字的波動
-    let wave2 = sin(waveOffset + PI/2) * 15; // 第二行文字的波動（錯開相位）
-    
-    // 設定字體
-    textFont('Arial');
-    
-    // 繪製兩行文字，位置在畫面中間
-    text('淡江教育科技學系', width/2, height/2 - 20 + wave1);
-    text('411136541江奕葳', width/2, height/2 + 35 + wave2);
-}function draw() {
-	background(0);
-	for (let i of objs) {
-		i.run();
-	}
-	
-	// 繪製波動文字
-	drawWavyText();
-
-	// 反向迭代以安全地從陣列中移除元素，避免跳過下一個元素
-	for (let i = objs.length - 1; i >= 0; i--) {
-		if (objs[i].isDead) {
-			objs.splice(i, 1);
-		}
-	}
-
-	if (frameCount % (random([10, 60, 120])) == 0) {
-		addObjs();
-	}
+/* 讓 p5 的 canvas 佔滿整個視窗並置於最下層 */
+canvas {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    z-index: 0 !important; /* 保證在 trigger 與 sidebar 之下 */
 }
 
-function addObjs() {
-	let x = random(-0.1, 1.1) * width;
-	let y = random(-0.1, 1.1) * height;
-	
-	for (let i = 0; i < 20; i++) {
-		objs.push(new Orb(x, y));
-	}
-
-	for (let i = 0; i < 50; i++) {
-		objs.push(new Sparkle(x, y));
-	}
-	
-	for (let i = 0; i < 2; i++) {
-		objs.push(new Ripple(x, y));
-	}
-
-	for (let i = 0; i < 10; i++) {
-		objs.push(new Shapes(x, y));
-	}
+/* 隱藏滾動條，畫布覆蓋整頁時通常不需要滾動 */
+html, body {
+    overflow: hidden;
 }
 
-function easeOutCirc(x) {
-	return Math.sqrt(1 - Math.pow(x - 1, 2));
+/* 側邊選單 */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 300px;
+    background-color: #333;
+    transform: translateX(-300px);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1001; /* 高於 trigger，確保顯示在上方 */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+    padding-top: 20px;
 }
 
-class Orb {
-	constructor(x, y) {
-		this.x = x;
-		this.y = y;
-		this.radius = 0;
-		this.maxRadius = minSide * 0.03;
-		this.rStep = random(1);
-		this.maxCircleD = minSide * 0.005;
-		this.circleD = minSide * 0.005;
-		this.isDead = false;
-		this.ang = random(10);
-	// 修正 random 參數順序，確保輸出是預期的範圍
-	this.angStep = random([-1, 1]) * random(0.1, 0.3);
-		this.xStep = random([-1, 1]) * minSide * random(0.01) * random(random());
-		this.yStep = random([-1, 1]) * minSide * random(0.01) * random(random());
-		this.life = 0;
-		this.lifeSpan = int(random(50, 180));
-		this.col = random(colors);
-		this.pos = [];
-		this.pos.push(createVector(this.x, this.y));
-		this.followers = 10;
-	}
-
-	show() {
-		this.xx = this.x + this.radius * cos(this.ang);
-		this.yy = this.y + this.radius * sin(this.ang);
-		push();
-		noStroke();
-		noFill();
-		stroke(this.col);
-		strokeWeight(this.circleD);
-		beginShape();
-		for (let i = 0; i < this.pos.length; i++) {
-			vertex(this.pos[i].x, this.pos[i].y);
-		}
-		endShape();
-		pop();
-	}
-
-	move() {
-		this.ang += this.angStep;
-		this.x += this.xStep;
-		this.y += this.yStep;
-		this.radius += this.rStep;
-		this.radius = constrain(this.radius, 0, this.maxRadius);
-		this.life++
-		if (this.life > this.lifeSpan) {
-			this.isDead = true;
-		}
-		this.circleD = map(this.life, 0, this.lifeSpan, this.maxCircleD, 1);
-		this.pos.push(createVector(this.xx, this.yy));
-		if (this.pos.length > this.followers) {
-			this.pos.splice(0, 1);
-		}
-	}
-	run() {
-		this.show();
-		this.move();
-	}
+#sidebar.active {
+    transform: translateX(0);
 }
 
-class Sparkle {
-	constructor(x, y) {
-		this.x = x;
-		this.y = y;
-		this.r = minSide * random(0.4);
-		this.a = random(10);
-		this.x0 = x;
-		this.y0 = y;
-		this.targetX = x + this.r * cos(this.a);
-		this.targetY = y + this.r * sin(this.a);
-		this.life = 0;
-		this.lifeSpan = int(random(50, 280));
-		this.col = random(colors);
-		this.sw = minSide * random(0.01)
-	}
-
-	show() {
-		noFill();
-		strokeWeight(this.sw);
-		stroke(this.col);
-		if (random() < 0.5) {
-			point(this.x, this.y);
-		}
-	}
-
-	move() {
-		let nrm = norm(this.life, 0, this.lifeSpan);
-		this.x = lerp(this.x0, this.targetX, easeOutCirc(nrm));
-		this.y = lerp(this.y0, this.targetY, easeOutCirc(nrm));
-		this.life++
-		if (this.life > this.lifeSpan) {
-			this.isDead = true;
-		}
-	}
-
-	run() {
-		this.show();
-		this.move();
-	}
+#sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-
-class Ripple {
-	constructor(x, y) {
-		this.x = x;
-		this.y = y;
-		this.life = 0;
-		this.lifeSpan = int(random(50, 150));
-		this.col = random(colors);
-		this.maxSw = minSide * 0.005;
-		this.sw = minSide * 0.005;
-		this.d = 0;
-		this.maxD = minSide * random(0.1, 0.5);
-	}
-
-	show() {
-		noFill();
-		stroke(this.col);
-		strokeWeight(this.sw);
-		circle(this.x, this.y, this.d);
-	}
-
-	move() {
-		this.life++
-		if (this.life > this.lifeSpan) {
-			this.isDead = true;
-		}
-		let nrm = norm(this.life, 0, this.lifeSpan);
-		this.sw = lerp(this.maxSw, 0.1, easeOutCirc(nrm));
-		this.d = lerp(0, this.maxD, easeOutCirc(nrm));
-	}
-
-	run() {
-		this.show();
-		this.move();
-	}
+#sidebar li a {
+    display: block;
+    padding: 15px 20px;
+    color: white;
+    text-decoration: none;
+    font-size: 22px;
+    white-space: nowrap;
 }
 
-class Shapes {
-	constructor(x, y) {
-		this.x = x;
-		this.y = y;
-		this.life = 0;
-		this.lifeSpan = int(random(50, 222));
-		this.col = random(colors);
-		this.sw = minSide * 0.005;
-		this.maxSw = minSide * 0.005;
-		this.w = minSide * random(0.05);
-		this.ang = random(10);
-		this.angStep = random([-1, 1]) * random(0.05);
-		this.shapeType = int(random(3));
-		this.r = minSide * random(0.4);
-		this.a = random(10);
-		this.x0 = x;
-		this.y0 = y;
-		this.targetX = x + this.r * cos(this.a);
-		this.targetY = y + this.r * sin(this.a);
-	}
+#sidebar li a:hover {
+    background-color: #575757;
+}
 
-	show() {
-		push();
-		translate(this.x, this.y);
-		rotate(this.ang);
-		noFill();
-		strokeWeight(this.sw);
-		stroke(this.col);
-		if (this.shapeType == 0) {
-			square(0, 0, this.w);
-		} else if (this.shapeType == 1) {
-			circle(0, 0, this.w);
-		} else if (this.shapeType == 2) {
-			line(0, this.w / 2, 0, -this.w / 2);
-			line(this.w / 2, 0, -this.w / 2, 0);
-		}
-		pop();
+/* 左側透明觸發區塊：放在 canvas 之上以接收事件 */
+#left-trigger {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100px; /* 觸發寬度，可調整 */
+    height: 100%;
+    z-index: 1000; /* 低於 sidebar，但高於 canvas */
+    background: transparent;
+}
 
-	}
+/* 主要內容區塊（可視化於 demo） */
+#content {
+    padding: 16px;
+    margin-left: 16px;
+    z-index: 10;
+}
 
-	move() {
-		this.life++
-		if (this.life > this.lifeSpan) {
-			this.isDead = true;
-		}
-		let nrm = norm(this.life, 0, this.lifeSpan);
-		this.x = lerp(this.x0, this.targetX, easeOutCirc(nrm));
-		this.y = lerp(this.y0, this.targetY, easeOutCirc(nrm));
-		this.sw = lerp(this.maxSw, 0.1, easeOutCirc(nrm));
-		this.ang += this.angStep;
-	}
+/* iframe 容器樣式 */
+#iframeContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70vw;
+  height: 85vh;
+  background: white;
+  z-index: 2000;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
 
-	run() {
-		this.show();
-		this.move();
-	}
+#iframeContainer.hidden {
+  display: none;
+}
+
+#contentFrame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 8px;
+}
+
+#closeFrame {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+#closeFrame:hover {
+  background: #f0f0f0;
+}
+
+/* 簡單響應式調整：窄螢幕時縮小 sidebar 寬度與 iframe */
+@media (max-width: 600px) {
+  #sidebar { width: 220px; transform: translateX(-220px); }
+  #sidebar.active { transform: translateX(0); }
+  #iframeContainer {
+    width: 90vw;
+    height: 90vh;
+  }
 }
